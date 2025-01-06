@@ -1,0 +1,47 @@
+import * as dotenv from "dotenv";
+import express from "express";
+import { Keypair, Connection, clusterApiUrl } from "@solana/web3.js";
+import {
+  buyAndDistributeTokens,
+  sellTokensBackToParent,
+} from "./services/walletService";
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+app.get("/distribute", async (req, res) => {
+  try {
+    const parentWallet = Keypair.generate();
+    const airdropSignature = await connection.requestAirdrop(
+      parentWallet.publicKey,
+      1_000_000_000
+    );
+    await connection.confirmTransaction(airdropSignature);
+    console.log("Airdrop completed for parent wallet!");
+
+    await buyAndDistributeTokens(parentWallet, 1_000_000_000);
+    res.send("Tokens distributed successfully!");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to distribute tokens.");
+  }
+});
+
+app.get("/sell", async (req, res) => {
+  try {
+    const parentWallet = Keypair.generate(); // Replace with loaded parent wallet if persisted
+    await sellTokensBackToParent(parentWallet);
+    res.send("Tokens sold successfully!");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Failed to sell tokens.");
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
