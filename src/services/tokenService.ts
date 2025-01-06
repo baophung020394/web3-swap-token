@@ -50,10 +50,10 @@ const pumpProgramId = new PublicKey(
 );
 
 /**
- * Transfer SOL từ ví cha sang ví con.
- * @param parentWallet - Ví cha (Keypair)
- * @param childWallet - Ví con (PublicKey)
- * @param amountSol - Số lượng SOL cần chuyển (vd: 0.0001)
+ * Transfer SOL from parent wallet to child wallet.
+ * @param parentWallet - Parent wallet (Keypair)
+ * @param childWallet - Child wallet (PublicKey)
+ * @param amountSol - Amount of SOL to transfer (e.g., 0.0001)
  */
 export async function transferSol(
   parentWallet: Keypair,
@@ -70,9 +70,9 @@ export async function transferSol(
         `Attempt ${retries + 1}/${maxRetries}: Transferring ${amountSol} SOL...`
       );
 
-      const lamports = amountSol * LAMPORTS_PER_SOL; // Chuyển đổi từ SOL sang Lamports
+      const lamports = amountSol * LAMPORTS_PER_SOL; // Convert SOL to Lamports
 
-      // Kiểm tra số dư ví cha
+      // Check parent wallet balance
       const parentBalance = await connection.getBalance(parentWallet.publicKey);
       console.log(
         `Parent wallet balance: ${(parentBalance / LAMPORTS_PER_SOL).toFixed(
@@ -89,7 +89,7 @@ export async function transferSol(
         return;
       }
 
-      // Tạo giao dịch chuyển SOL
+      // Create a transaction to transfer SOL
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: parentWallet.publicKey,
@@ -98,7 +98,7 @@ export async function transferSol(
         })
       );
 
-      // Gửi giao dịch
+      // Send the transaction
       const signature = await sendAndConfirmTransaction(
         connection,
         transaction,
@@ -107,7 +107,7 @@ export async function transferSol(
       console.log(
         `Successfully transferred ${amountSol} SOL to ${childWallet.toBase58()}. Signature: ${signature}`
       );
-      return; // Kết thúc nếu thành công
+      return; // Exit if successful
     } catch (error: any) {
       retries++;
       console.error(
@@ -115,13 +115,13 @@ export async function transferSol(
         error.message
       );
 
-      // Nếu đạt số lần retries tối đa, ném lỗi
+      // If max retries reached, throw error
       if (retries >= maxRetries) {
         console.error("Max retries reached. Transfer failed.");
         throw error;
       }
 
-      // Đợi trước khi thử lại
+      // Wait before retrying
       console.log(`Retrying after ${delayMs}ms...`);
       await delay(delayMs);
     }
@@ -141,7 +141,7 @@ export async function getTokenBalance(
     const amount = parsedData.parsed.info.tokenAmount.amount;
     return parseFloat(amount);
   }
-  return 0; // Nếu không có số dư, trả về 0
+  return 0; // Return 0 if no balance
 }
 
 export async function pumpFunSell(
