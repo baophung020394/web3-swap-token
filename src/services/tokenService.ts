@@ -39,6 +39,7 @@ import {
   SYSTEM_PROGRAM_ID,
 } from "../constants/constants";
 import bs58 from "bs58";
+import { TokenSwap, TOKEN_SWAP_PROGRAM_ID } from "@solana/spl-token-swap";
 
 // Token Mint for the specific token on Testnet
 const tokenMint = new PublicKey("mntbSKLzJ3N75doUxS5kmeoPqRHqHFxn24noNPzs9NW");
@@ -284,13 +285,13 @@ export async function transferToken(
     )
   );
 
-  const signature = await sendAndConfirmTransaction(connection, transaction, [
-    parentWallet,
-  ]);
+  //   const signature = await sendAndConfirmTransaction(connection, transaction, [
+  //     parentWallet,
+  //   ]);
 
-  console.log(
-    `Successfully transferred ${amount} tokens to ${childWallet.toBase58()}. Transaction signature: ${signature}`
-  );
+  //   console.log(
+  //     `Successfully transferred ${amount} tokens to ${childWallet.toBase58()}. Transaction signature: ${signature}`
+  //   );
 }
 
 export async function distributeTokensSequentially(
@@ -348,6 +349,15 @@ export async function distributeTokensSequentially(
         }`
       );
     }
+  }
+
+  try {
+    const signature = await sendAndConfirmTransaction(connection, transaction, [
+      parentWallet,
+    ]);
+    console.log(`Transaction confirmed. Signature: ${signature}`);
+  } catch (error: any) {
+    console.error(`Error sending transaction: ${error.message}`);
   }
 }
 
