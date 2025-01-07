@@ -8,47 +8,9 @@ import {
 } from "@solana/web3.js";
 import bs58 from "bs58";
 
-function isValidBase58(str: string): boolean {
-  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/;
-  return base58Regex.test(str);
-}
-
 export async function getKeyPairFromPrivateKey(key: string) {
-    return Keypair.fromSecretKey(
-        new Uint8Array(bs58.decode(key))
-    );
+  return Keypair.fromSecretKey(new Uint8Array(bs58.decode(key)));
 }
-
-
-// export async function getKeyPairFromPrivateKey(key: string) {
-//   let decodedKey: Uint8Array;
-
-//   // Kiểm tra nếu chuỗi là Base58
-//   if (/^[1-9A-HJ-NP-Za-km-z]+$/.test(key)) {
-//     console.log("Detected Base58 private key format.");
-//     decodedKey = bs58.decode(key);
-//   }
-//   // Kiểm tra nếu chuỗi là Base64
-//   else if (/^[A-Za-z0-9+/]+={0,2}$/.test(key)) {
-//     console.log("Detected Base64 private key format.");
-//     decodedKey = Uint8Array.from(atob(key), (c) => c.charCodeAt(0));
-//   }
-//   // Nếu không khớp định dạng
-//   else {
-//     throw new Error(
-//       "Invalid private key format. Only Base58 or Base64 is supported."
-//     );
-//   }
-
-//   // Kiểm tra chiều dài của secret key
-//   if (decodedKey.length !== 64) {
-//     throw new Error(
-//       `Invalid private key length. Expected 64 bytes, got ${decodedKey.length}.`
-//     );
-//   }
-
-//   return Keypair.fromSecretKey(decodedKey);
-// }
 
 export async function createTransaction(
   connection: Connection,

@@ -1,14 +1,19 @@
 import {
+  clusterApiUrl,
   Connection,
   Keypair,
   LAMPORTS_PER_SOL,
-  PublicKey
+  PublicKey,
 } from "@solana/web3.js";
 import * as fs from "fs";
 import * as path from "path";
 
+// const HELIUS_RPC_URL =
+//   "https://devnet.helius-rpc.com/?api-key=3d702a02-5adb-4985-a20b-728039d75ff7";
+
 const HELIUS_RPC_URL =
   "https://mainnet.helius-rpc.com/?api-key=3d702a02-5adb-4985-a20b-728039d75ff7";
+// export const connection = new Connection(clusterApiUrl("mainnet-beta"), "confirmed");
 export const connection = new Connection(HELIUS_RPC_URL, "confirmed");
 
 const walletsFile = path.resolve(__dirname, "../../wallets.json");

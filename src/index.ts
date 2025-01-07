@@ -1,4 +1,4 @@
-import { Keypair, PublicKey } from "@solana/web3.js";
+import { Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import * as bs58 from "bs58";
 import * as dotenv from "dotenv";
 import {
@@ -6,8 +6,10 @@ import {
   getTokenBalance,
   pumpFunBuy,
   pumpFunSell,
+  pumpFunSellForMultipleWallets,
   retryFunction,
   transferSol,
+  transferSolToParent,
 } from "./services/tokenService";
 import {
   connection,
@@ -36,6 +38,8 @@ async function main() {
   const priorityFeeInSol = 0.0001;
   const slippageDecimal = 0.25;
   const mintStr = "98NrBJsuU14gDjrXaoSmcUWkJGMpX2SCHXjsZrocpump";
+
+  let transaction = new Transaction();
 
   console.log("=== BEFORE OPERATIONS ===");
   console.log("=== parentWallet ===");
@@ -97,6 +101,7 @@ async function main() {
   await retryFunction(
     async () =>
       await distributeTokensSequentially(
+        transaction,
         parentWallet,
         wallets.map((w) => w.publicKey),
         new PublicKey(mintStr),
@@ -113,33 +118,26 @@ async function main() {
    */
   console.log("=== START TRANSFER SOL TO CHILD WALLET ===");
   for (let i = 0; i < wallets.length; i++) {
-    await transferSol(parentWallet, wallets[i].publicKey, 0.001);
+    await transferSol(parentWallet, wallets[i].publicKey, 0.001, transaction);
   }
   console.log("=== END TRANSFER SOL TO CHILD WALLET SUCCESS ===");
 
   /**
    * Step 4: Swap tokens to SOL for child wallets
    */
-  for (let i = 0; i < wallets.length; i++) {
-    const secretKey = Uint8Array.from(wallets[i].secretKey);
-    const walletChild = Keypair.fromSecretKey(secretKey);
-    const privateKeyChild = bs58.encode(walletChild.secretKey);
-    const tokenChildSwap = await getTokenBalance(wallets[i].publicKey, mintStr);
 
-    await retryFunction(
-      () =>
-        pumpFunSell(
-          txMode,
-          privateKeyChild,
-          mintStr,
-          tokenChildSwap,
-          priorityFeeInSol,
-          slippageDecimal
-        ),
-      3,
-      2000
-    );
-  }
+  await retryFunction(
+    () =>
+      pumpFunSellForMultipleWallets(
+        wallets,
+        txMode,
+        mintStr,
+        slippageDecimal,
+        priorityFeeInSol
+      ),
+    3,
+    2000
+  );
 
   console.log("=== AFTER OPERATIONS ===");
   console.log("=== parentWallet ===");
